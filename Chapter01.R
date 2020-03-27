@@ -115,18 +115,23 @@ sum(probabilities)
 
 # 1.3.3 Poisson distributions
 
-# number of successes (p) is small (p<0.01)
-# n*p<20
-# number of trials (n) is large
+# number of successes (p) is small (i.e. p<0.01)
+# number of trials (n) is large (i.e n>=100)
 # Poisson distribution only has one parameter: lambda
-# lambda=n*p
+# lambda=n*p  (n*p<20 when approximating binomials)
 
-# e.g mutation rate. Each replication of a nucleotide (i.e generation or cell cycle) is a trial, and a "success" is the occurance of a mutation
-# When you are dealing with many generations then you can approximate a Binomial distribution (which has two parameters) with a Poisson distribution which only has one parameter (lambda)
+# e.g mutation rate. Each replication of a nucleotide (i.e generation or cell cycle)
+# is a trial, and a "success" is the occurance of a mutation
+# When you are dealing with many generations then you can approximate a Binomial
+# distribution (which has two parameters) with a Poisson distribution which only
+# has one parameter (lambda)
 
 
 # Question 1.5
-# What is the probability mass distribution of obseving 0:12 mutations in a genome of n=10^4 nucleotides, when the probabilityis p=5*10^(-4) per nucleotide? Is it similar when modeled by the binomial B(n,p) distribution and by the Poisson (lambda=np) distribution?
+# What is the probability mass distribution of obseving 0:12 mutations in a genome
+# of n=10^4 nucleotides, when the probabilityis p=5*10^(-4) per nucleotide? Is it
+# similar when modeled by the binomial B(n,p) distribution and by the Poisson
+# (lambda=np) distribution?
 
 # using the bionomial distribution
 nucleotidesInGenome<-10^4 # n paramater in binomial distribution
@@ -167,9 +172,9 @@ barplot(table(simulations), col = "lavender")
 
 # 1.3.4 A generative model for epitope detection
 # ELISE assay for epiptope recognition:
-# false positive rate per position in epitope is 1%
-# test protein at 100 positions (assume independant!)
-# look at 50 patient samples
+# False positive rate per position in epitope is 1%.
+# Test protein at 100 positions (assume independant!).
+# Look at 50 patient samples.
 
 # one patient's data:
 rbinom(n=100, prob=0.01, size=1)
@@ -200,8 +205,7 @@ barplot(e100, ylim = c(0, 7), width = 0.7, xlim = c(-0.5, 100.5),
 1-ppois(q=6,lambda=0.5)
 
 # there is also a paramter for this in the R function:
-epsilon=ppois(q=6, lambda=0.5, lower.tail=FALSE)
-epsilon
+ppois(q=6, lambda=0.5, lower.tail=FALSE)
 
 # Task
 # Check the manual page of ppois for the meaning of the lower.tail argument.
@@ -211,18 +215,35 @@ epsilon
 # Stop! The above calculation is not the correct computation in this case.
 
 # Question 1.6
-# Can you spot the flaw in our reasoning if we want to compute the probability that we observe these data if there is no epitope?
+# Can you spot the flaw in our reasoning if we want to compute the probability
+# that we observe these data if there is no epitope?
 # We are doing 100 tests (100 positions) not just 1
+# And we want to know what is the probability of seeing a number >=7 in 1 or more
+# of these tests. This is tricky to calculate because we have ot take into account
+# the different probabilities of seeing P(X>=7) in 1 test, in 2 tests, in 3 tests...
+# ... in 100 tests.
+# So it is simpler to just calculate the probability of NOT seeing a test with
+# P(X>=7) for each test, multiply them all together and then subtract that from 1:
 
-# The probability of getting a number at least as high as 7 in EACH trial is epsilon (see above)
-# So the probability of NOT seeing a number as high as epsilon in the trial is (1-epsilon)
-# since each trial is independant, you multiply all these 100 probabilities together (1-epsilon)*(1-epsilon)...(1-epsilon)
-# which is the same as (1-epsilon)^100
-# that gives you the probability of never seeing a number as high as 7 in 100 trials
 
-1-(1-epsilon)^100
+# The probability of NOT seeing a number at least as high as 7 in the test of
+# each position can be calculated as P(X<=6)
+ppois(q=6,lambda=0.5)
+
+# The probability of NEVER seeing a number at least as high as 7 in ANY ONE of
+# 100 tests (which we assume are independant and therefore we can multiply the
+# probabily for each individual test - see probability rules) is:
+(ppois(q=6,lambda=0.5))^100
+
+#Therefore the probability of seeing a number >=7 in at least 1 of the 100 tests
+# is:
+1-(ppois(q=6,lambda=0.5))^100
+
+
+
 # Computing probabilities by simulation
-
+# We can approximate this number we calculated with simulations (always good
+# to check becuase of the complicated logic above)
 maxes = replicate(100000, {
   max(rpois(100, 0.5))
 })
@@ -230,6 +251,9 @@ table(maxes)
 
 mean( maxes >= 7 )
 
+# Note that because the probability is so low, we need to run many simulations
+# (100,000) to get enough positives to be able to calculate the frequency with
+# some accuracy
 
 
 ## 1.4 Multinomial distributions: the case of DNA
@@ -246,18 +270,22 @@ pT=1/8
 runif(4)
 
 # Question 1.7
-# Suppose we have four boxes that are equally likely. Using the formula, what is the probability of observing 4 in the first box, 2 in the second box, and none in the two other boxes?
+# Suppose we have four boxes that are equally likely. Using the formula, what is
+# the probability of observing 4 in the first box, 2 in the second box, and none
+# in the two other boxes?
 X<-c(4,2,0,0) #successes by category
 n<-sum(X) # total number of successes
 m<-length(X) # number of categories
-# note that if probability for each category is equal, then the probability of each category is 1/m
+# note that if probability for each category is equal, then the probability of
+# each category is 1/m
 
 # using the formula
 multinomProbs<-(factorial(n)/(factorial(X[1])*factorial(X[2])*factorial(X[3])*factorial(X[4])))*(1/m)^n
 multinomProbs
 
 dmultinom(c(4, 2, 0, 0), prob = rep(1/4, 4))
-# equally likely outcomes per category is often used as the null hypothesis in statistical testing
+# equally likely outcomes per category is often used as the null hypothesis
+# in statistical testing
 
 # suppose we have 8 characters of four different, equally likely types:
 pvec = rep(1/4, 4)
@@ -272,7 +300,8 @@ x
 t(x)
 
 # Question 1.9
-# How do you interpret the difference between rmultinom(n = 8, prob = pvec, size = 1) and rmultinom(n = 1, prob = pvec, size = 8)?
+# How do you interpret the difference between rmultinom(n = 8, prob = pvec,
+# size = 1) and rmultinom(n = 1, prob = pvec, size = 8)?
 
 q<-rmultinom(n = 8, prob = pvec, size = 1) # 8 trials each with 1 character put into 4 boxes
 rowSums(q)
@@ -286,7 +315,8 @@ rmultinom(n = 8, prob = pvec, size = 8) # eight trials with 8 characters put int
 
 # 1.4.1 Simulating for power
 # how big a sample size do I need?
-# power=true positive rate=TP/(TP+FN) i.e how many of the things that are really positive are you detecting and scoring as positive?
+# power=true positive rate=TP/(TP+FN) i.e how many of the things that are really
+# positive are you detecting and scoring as positive?
 # conventionally aim for power of 0.8
 # 20% of experiments will fail to yield a positive result even if it is true
 # there is a trade off between TPR and FPR
