@@ -63,7 +63,7 @@ mean(maxes>=m)
 extremeValueProb(m,n,lambda)
 
 
-# Exercise 1.4
+## Exercise 1.4
 # Rewrite the function to have default values for its arguments (i.e., values that are used by it if the argument is not specified in a call to the function).
 extremeValueProb<-function(m=11,n=10,lambda=5) {
   p=1-(ppois(m-1,lambda))^n
@@ -75,7 +75,7 @@ extremeValueProb(m=8)
 extremeValueProb(m=8,lambda=7)
 
 
-# Exercise 1.5
+## Exercise 1.5
 # In the epitope example, use a simulation to find the probability of having a maximum of 9 or larger in 100 trials. How many simulations do you need if you would like to prove that “the probability is smaller than 0.000001”?
 lambda=0.1 # false positive rate P(declare epitope | no epitope)
 n=100 # number of positions in protein that are tested (assumed independant)
@@ -103,6 +103,9 @@ plot(xProb,dbeta(xProb,shape1=0.3,shape2=0.8),main="beta")
 # binomial (discrete)
 # number of successes in bernoulli trials
 plot(xInteger,dbinom(xInteger,size=100,prob=0.3),main="binomial")
+# this is a discrete function, if we try to give it fraction values
+# like in xCont, it will plot wierdly - note points along the X
+# axis:
 #plot(xCont,dbinom(xCont,size=100,prob=0.3))
 
 # Cauchy (continuous)
@@ -170,3 +173,91 @@ plot(xCont,dunif(xCont,min=min(xCont),max=max(xCont)),"uniform")
 # Weibull (continuous)
 # describes particle size distribution
 plot(xCont,dweibull(xCont,shape=10,scale=mean(xCont)))
+################################
+
+#gamma, exponential,normal, log-normal,uniform, Weibul
+#beta, Cauchey, f, t, chisq
+
+
+## Exercise 1.7
+# Generate 100 instances of a Poisson(3) random variable. What is the mean? What is the variance as computed by the R function var?
+
+sims<-rpois(100,3)
+mean(sims)
+var(sims)
+# this illustrates that the mean and variance of a poisson distribution are both the same, and are equal to lambda
+
+
+
+## Exercise 1.8
+# C. elegans genome nucleotide frequency: Is the mitochondrial sequence of C. elegans consistent with a model of equally likely nucleotides?
+# a. Explore the nucleotide frequencies of chromosome M by using a dedicated function in the Biostrings package from Bioconductor.
+
+library("BSgenome.Celegans.UCSC.ce11")
+library("Biostrings")
+
+Celegans
+seqnames(Celegans)
+seqlengths(Celegans)
+seqinfo(Celegans)
+mito<-Celegans$chrM
+mito
+alphabetFrequency(mito)
+
+mitoNucCount<-alphabetFrequency(mito)[1:4]
+mitoNucCount
+
+mitoNucFreq<-mitoNucCount/sum(mitoNucCount)
+mitoNucFreq
+
+#b. Test whether the C. elegans data is consistent with the uniform model (all nucleotide frequencies the same) using a simulation.
+
+uniformFreq<-rep(0.25,4)
+uniformFreq
+
+# simplest way:
+chisq.test(mitoNucCount,p=uniformFreq)
+# done! a highly significant result showing the nucleotide composition
+# of the mitochondrial genome is far form uniform!
+
+# but to be totally sure, lets check by simulations and a manual function
+# create a null distribution
+# this is a count of "successes" in more than 2 bins, so we need the
+# multinomial distribution
+
+sims<-rmultinom(10000,size=length(mito),prob=uniformFreq)
+sims[,1:6]
+
+# function for chi squared statistic
+chisqStat<-function(obs,expd){
+  sum((obs-expd)^2/expd)
+}
+
+# now we apply it to each column of the simulations:
+stats<-apply(sims,2,chisqStat,expd=uniformFreq*length(mito))
+
+# we also need to calculate the chi squared stat for our sample
+sampleStat<-chisqStat(mitoNucCount,uniformFreq*length(mito))
+
+# now lets test if P(mitoNucCount)<0.001
+q99.9<-quantile(stats,probs=0.999)
+q99.9
+sampleStat>q99.9
+# clearly different.
+
+# we can also plot the result of the simulations to get an
+# idea of how different it is:
+from<-max(stats)
+to<-sampleStat
+hist(stats,breaks=100)
+abline(v=sampleStat,col="red")
+# we do not see our sample because it is off the scale
+sampleStat
+# if we try to put both on same scale, the histogram is dwarfed
+hist(stats,breaks=100,xlim=c(0,max(stats,sampleStat)*1.1))
+abline(v=sampleStat,col="red")
+# so in this case the mitochondrial nucleotide composition is so
+# different it is a bit meaningless to plot it.
+
+
+
