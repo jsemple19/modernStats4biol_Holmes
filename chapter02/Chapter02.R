@@ -112,3 +112,39 @@ gf$method
 # df: degrees of freedom = number of measurement categories- number of parameters we are trying to estimate (i think, but not 100% sure)
 gf$df # 4 categories (i.e. 0,1,2,7 ) - 2 parameters (lambda and goodness of fit)
 
+
+## Task
+# Compare the value of m to the value that we used previously for lambda, 0.5.
+# Redo the modeling that we did in Chapter 1 with m instead of 0.5.
+
+# our m0 was:
+m0
+# our current m:
+gf$par
+# the same!
+
+# Simulation from chapter 1 (section 1.3.4)
+#50 patient's data
+
+# using poisson simulation
+elisasPois<-rpois(n=100,lambda=0.5)
+elisasPois
+
+# using our new m:
+elisasPois_m<-rpois(n=100,lambda=0.55)
+elisasPois_m
+
+par(mfrow=c(3,1))
+barplot(e100, ylim = c(0, 7),
+        names.arg = seq(along = e100), col = "darkolivegreen")
+barplot(elisasPois, names.arg=1:100, main="Poisson simulation",ylim=c(0,7))
+barplot(elisasPois_m, names.arg=1:100, main="Poisson simulation, new m",
+        ylim=c(0,7))
+par(mfrow=c(1,1))
+# looks a bit more similar to the data?
+
+
+
+## 2.3.1 Classical statistics for classical data
+# We see that the mean of the poisson distribution maximises the log-likelihood
+
