@@ -147,4 +147,50 @@ par(mfrow=c(1,1))
 
 ## 2.3.1 Classical statistics for classical data
 # We see that the mean of the poisson distribution maximises the log-likelihood
+# see detailed work through the maths in equations.pdf or Chapter02.pptx
 
+## Question 2.6
+# What is the value of modeling with a known distribution?
+#  For instance, why is it interesting to know a variable has a Poisson distribution ?
+#
+#  Known distributions have known properties that make it easier to estimate parameters, or evaluate significance.
+
+
+
+## 2.4 Binomial distributions and maximum likelihood
+# In a binomially distributed data set we normally know one parameter,
+# the number of trials (n), but we typically do not know the probability of seeing a success in a trial.
+#
+## 2.4.1 An example
+n=120 # number of males tested for red-green colour blindedness
+cb=c(rep(0,110),rep(1,10)) # results of test, 0 = not colour blind, 1= colour blind.
+table(cb)
+
+## Question 2.7
+# Which value of p is the most likely given these data?
+# Simply calculate it from the proportion of positives:
+10/120
+
+probs  =  seq(0, 0.3, by = 0.005)
+likelihood = dbinom(sum(cb), prob = probs, size = length(cb))
+plot(probs, likelihood, pch = 16, xlab = "probability of success", ylab = "likelihood", cex=0.6)
+probs[which.max(likelihood)]
+# almost the same... but our sampled probabilities do
+# not have the same precision as our theoretical estimate.
+
+
+## Likelihood for the binomial distribution
+# Likelihood and probability are the same mathematical function, but with different interpretations.
+# Probability tells us how probable we are to see a particular set of values of the data, given the parameters.
+# Likelihood tell us how likely we are to see the parameters given the data
+# See detailed workthrough of the maths in the powerpoint or in equations.pdf
+
+loglikelihood = function(theta, n = 300, k = 40) {
+ log(choose(n,k)) + k * log(theta) + (n - k) * log(1 - theta)
+}
+
+thetas = seq(0, 1, by = 0.001)
+plot(thetas, loglikelihood(thetas), xlab = expression(theta),
+     ylab = expression(paste("log f(", theta, " | y)")),type = "l")
+
+# maximum lies at 40/300=0.13333

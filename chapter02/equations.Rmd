@@ -1,16 +1,18 @@
----
-title: "solvingEquation"
-author: "Jennifer Semple"
+--- 
+title: "solvingEquation" 
+author: "Jennifer Semple" 
 date: "4/1/2020"
-geometry: "left=4cm,right=5cm,top=2cm,bottom=4cm"
-output: pdf_document
+geometry: "left=4cm,right=5cm,top=2cm,bottom=4cm" 
+output: pdf_document 
 ---
-
 ## 2.3.1 Classical statistics for classical data 
+
 Proof that the mean of the Poisson distribution maximises the log-likelihood:
 
-From before we know that the liklihood (written here as L) is a multiplication of all the inidividual probabilities:
-\[L(\lambda,x = (k_{1},k_{2},k_{3}...)) = \prod_{i=1}^{100} f(k_{i}) \]
+From before we know that the liklihood (written here as L) is a multiplication of all the inidividual probabilities: 
+
+\[L(\lambda,x = (k_{1},k_{2},k_{3}...)) =
+\prod_{i=1}^{100} f(k_{i}) \] 
 
 f(k) is simply the Poisson density function:
 
@@ -18,36 +20,56 @@ f(k) is simply the Poisson density function:
 
 So if we put those together and take the log of both sides, we get:
 
-\[\log(L(\lambda,x)) = \log(\prod_{i=1}^{100}\frac{e^{-\lambda}\lambda^{k}}{k!})\]
+\[\log(L(\lambda,x)) =
+\log(\prod_{i=1}^{100}\frac{e^{-\lambda}\lambda^{k}}{k!})\]
 
 We know that the product log of a product ($\prod_{}^{}$) is the same as the sum ($\sum_{}^{}$) of a log, we can rewrite it as:
 
 \[ \log L= \sum_{i=1}^{100}\log(\frac{e^{-\lambda}\lambda^{k}}{k!})\]
- 
- We can also break up the fraction, again using the log rules of $\log(a*b)=log(a)+log(b)$ and $\log(\frac{a}{b})=\log(a)-log(b)$:
- 
-\[\log L= \sum_{i=1}^{100}(\log(e^{-\lambda}) + \log(\lambda^{k}) - \log({k!}))\]
+
+We can also break up the fraction, again using the log rules of $\log(a*b)=log(a)+log(b)$ and $\log(\frac{a}{b})=\log(a)-log(b)$:
+
+\[\log L= \sum_{i=1}^{100}(\log(e^{-\lambda}) + \log(\lambda^{k}) -\log({k!}))\]
 
 Now we can get rid of the powers using $\log(a^{b})=b\log(a)$. Also $\log(e)=1$ because this is the natural log.
 
 \[\log L= \sum_{i=1}^{100}(-\lambda + k\log(\lambda) - \log({k!}))\]
- 
-Now we want to break apart the sum by extracting terms that do not depend on k. The final term does not depend on lambda, so it is just a constant:
- 
+
+Now we want to break apart the sum by extracting terms that do not depend on k.The final term does not depend on lambda, so it is just a constant:
+
 \[log L= -100\lambda+\log\lambda(\sum_{i=1}^{100}k_{i}) + const.\]
- 
+
 To get the maximum of a function we want the derivative of the function to be equal to 0:
 
-\[\frac{d}{d\lambda}\log L= \frac{d}{d\lambda}(-100\lambda+\log\lambda(\sum_{i=1}^{100}k_{i}) + const.) = 0\]
+\[\frac{d}{d\lambda}\log L=
+\frac{d}{d\lambda}(-100\lambda+\log\lambda(\sum_{i=1}^{100}k_{i}) + const.) =
+0\]
 
- Using the derivative rules of $\frac{d}{dx}ax=a$ and $\frac{d}{dx}\log(x)=\frac{1}{x}$, and derivative of a constant is 0, we get:
- 
+Using the derivative rules of $\frac{d}{dx}ax=a$ and
+$\frac{d}{dx}\log(x)=\frac{1}{x}$, and derivative of a constant is 0, we get:
+
 \[-100 + \frac{1}{\lambda}\sum_{i=1}^{100}k_{i} = 0\]
-
 \[100 = \frac{1}{\lambda}\sum_{i=1}^{100}k_{i}\]
 
 Multiply by $\frac{\lambda}{100}$:
 
 \[\lambda=\frac{1}{100}\sum_{i=1}^{100}k_{i} = \overline{k}\]
-
 So the $\lambda$ paramter is the same as the mean ($\overline{k}$).
+\newpage 
+
+## Likelihood for the binomial distribution
+\[f(\theta|n,y) =
+f(y|n,\theta) = \binom{n}{y}\theta^{y}(1-\theta)^{(n-y)}\]
+
+To avoid large-number multiplications we take the log of both sides (log likelihood):
+\[\log f(\theta|n,y) = \log (\binom{n}{y}\theta^{y}(1-\theta)^{(n-y)})\]
+
+We break up the product using the log rule $\log(ab)=\log(a)+\log(b)$:
+
+\[\log f(\theta|n,y) = \log\binom{n}{y}+ \log\theta^{y}+\log(1-\theta)^{(n-y)})\]
+
+We bring down the exponents using the $\log(a^{b})=b\log(a)$ rule:
+
+\[\log f(\theta|n,y) = \log\binom{n}{y}+ y\log\theta+(n-y)\log(1-\theta)\]
+
+This is the formula used in the text.
