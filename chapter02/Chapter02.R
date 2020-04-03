@@ -194,3 +194,191 @@ plot(thetas, loglikelihood(thetas), xlab = expression(theta),
      ylab = expression(paste("log f(", theta, " | y)")),type = "l")
 
 # maximum lies at 40/300=0.13333
+
+
+
+## 2.5 More boxes: multinomial data
+## 2.5.2 Nucleotide bias
+library("Biostrings")
+staph = readDNAStringSet("./data/staphsequence.ffn.txt", "fasta")
+
+staph[1]
+letterFrequency(staph[[1]], letters = "ACGT", OR = 0)
+
+
+## Question 2.8
+# Why did we use double square brackets in the second line?
+# because it is a list-like object. single brackets would have just extracted
+# the first sequence as a DNAString type object, to get the actual sequence you
+# need [[]].
+length(staph[1])
+length(staph[[1]])
+
+
+## Question 2.9
+# Following a similar procedure as in Exercise 1.8, test whether the nucleotides
+# are equally distributed across the four nucleotides for this first gene.
+# letter frequency for first sequence
+obs<-letterFrequency(staph[[1]], letters = "ACGT", OR = 0)
+# expected frequency (null hypothesis)
+uniformFreq<-rep(0.25,4)
+uniformFreq
+
+# simplest way:
+chisq.test(obs,p=uniformFreq)
+
+# or the simulation way:
+sims<-rmultinom(10000,size=sum(obs),prob=uniformFreq)
+sims[,1:6]
+
+# function for chi squared statistic
+chisqStat<-function(obs,expd){
+  sum((obs-expd)^2/expd)
+}
+
+# now we apply it to each column of the simulations:
+stats<-apply(sims,2,chisqStat,expd=uniformFreq*sum(obs))
+
+# we also need to calculate the chi squared stat for our sample
+sampleStat<-chisqStat(obs,uniformFreq*sum(obs))
+sampleStat
+# now lets test if P(mitoNucCount)<0.001
+q99.9<-quantile(stats,probs=0.999)
+q99.9
+sampleStat>q99.9
+# clearly different.
+
+# we can also plot the result of the simulations to get an
+# idea of how different it is:
+hist(stats,breaks=100,xlim=c(0,sampleStat*1.1))
+abline(v=sampleStat,col="red")
+
+
+## Do the first ten genes come from the same multinomial? or are they subject
+# to different evolutionary pressures?
+letterFrq = vapply(staph, letterFrequency, FUN.VALUE = numeric(4),
+                   letters = "ACGT", OR = 0)
+colnames(letterFrq) = paste0("gene", seq(along = staph))
+tab10 = letterFrq[, 1:10]
+computeProportions = function(x) { x/sum(x) }
+prop10 = apply(tab10, 2, computeProportions)
+round(prop10, digits = 2)
+
+p0 = rowMeans(prop10)
+p0
+
+# we take these summed counts to calculate an overall multinomial probability
+# and use this for simulations
+cs=colSums(tab10)
+cs
+
+# we use "outer" vector multiplication to multiply the probabilities for each
+# category with the total number of nucleotides per gene. the result is a
+# 4x10 matrix
+expectedtab10 = outer(p0, cs, FUN = "*")
+round(expectedtab10)
+
+# now we cycle through the total count of nucleotides per gene (cs) using
+# sapply (a version of lapply that returns the most "simple" output type, i.e.
+# vector or matrix, rather than always returning a list, like lapply). We use
+# rmultinom to create a random sample according to the multinomial distribution
+# for that particular number of nucleotides and the null hypothesis, which
+# in this case is the average probabilities from all 10 genes.
+randomtab10 = sapply(cs, function(s) { rmultinom(1, s, p0) } )
+all(colSums(randomtab10) == cs)
+randomtab10
+
+# but actually we want to do this 1000 times, and to avoid the data getting
+# too large we immediately calculate the chi squared statistic, comparing
+# the randomtab10 to the expectedtab10, and store only that.
+stat = function(obsvd, exptd = 20 * pvec) { # a function to calculate the statistic
+  sum((obsvd - exptd)^2 / exptd)
+}
+B = 1000  # number of simulations
+simulstat = replicate(B, {
+  randomtab10 = sapply(cs, function(s) { rmultinom(1, s, p0) }) # the random sample
+  stat(randomtab10, expectedtab10) # calculating the stastic for the randoms sample
+})
+S1 = stat(tab10, expectedtab10) # calculating the statistic for our real counts
+sum(simulstat >= S1) # checking what fraction of the null distribution statistic
+# is bigger or equal to our statistic from the real counts
+
+# plotting this results:
+hist(simulstat, col = "lavender", breaks = seq(0, 75, length.out=50))
+abline(v = S1, col = "red")
+abline(v = quantile(simulstat, probs = c(0.95, 0.99)),
+       col = c("darkgreen", "blue"), lty = 2)
+# conclusion: these 10 genes do not come from the same distribution, i.e. they
+# have very different nucleotide frequencies, i.e the evolutionary forces that
+# affected them are very different. (some might be essential, some might have
+# mutated a lot etc etc)
+
+
+
+## The Chi Squared distrbution
+
+# Small probabilities are hard to compute by Monte Carlo (random) simulations.
+# The resolution/granularity is at best, 1/(number of simulations). This is
+# why we always use theoretical distributions if possible.
+S1 = stat(tab10, expectedtab10) # the statistic for the nucleotide counts vs the expected counts
+1-pchisq(S1,df=10*(4-1)) #caculating the probability from the cdf of the theoretical chi squared distribution
+# Note: The number of degrees of freedom is 30=10*(4-1), because we have 10
+# independant genes, and for each gene, given its length, there are three
+# degrees of freedom for the number of nucleotides (if you know the number
+# of As Cs and Gs, and the total length, the number of Gs is no longer
+# independant)
+
+
+
+## 2.6.1 Intermezzo: quantiles and the quantile-quantile plot
+## Question 2.10
+
+# Compare the simulstat values and 1000 randomly generated chi squared (df=30)
+# random numbers by displaying them in histograms with 50 bins each.
+# Compute the quantiles of the simulstat values and compare them to those of
+# the chi squared distribution with 30 degrees of freedom. Hint:
+
+# ppoints generates a sequence of probability points (i.e a sequence of
+# numbers between 0 and 1) so we can easily compare quantiles accross the whole
+# distribution
+qs = ppoints(100)
+qSims<-quantile(simulstat, qs) #value of the distribution of our simulated data at the various probability values
+qTheoretical<-quantile(qchisq(qs, df = 30), qs)# value of the theoretical distribution at various probability values
+
+# We can plot the quantiles against eachother, this is a qqplot
+plot(qSims,qTheoretical, main=qqplot)
+abline(a=0,b=1) # line with slope 1 going through the origin
+# if the distributions are exactly the same, the points should alig nalong the
+# line.
+
+## Question 2.11
+# Do you know another name for the 0.5 quantile?
+# The value which has exactly half the data of the distribution below it and
+# half above it = Median!
+
+
+## Question 2.12
+# n the above definition, we were a little vague on how the quantile is defined in general, i.e., not just for 0.22. How is the quantile computed for any number between 0 and 1, including ones that are not multiples of 1/n?
+
+# quantiles are cut points dividing the range of a probability distribution
+# into continuous intervals with equal probabilities, or dividing the
+# observations in a sample in the same way. (i thought the R help explanation
+# was incomprehensible, so i went to wikipedia)
+
+# Rather than drawing the qqplot manually as we did, there is a function in
+# R called qqplot, as shown in the book.
+
+qqplot(qchisq(ppoints(B), df = 30), simulstat, main = "",
+       xlab = expression(chi[nu==30]^2), asp = 1, cex = 0.5, pch = 16)
+abline(a = 0, b = 1, col = "red")
+
+# as we see the simulattions are a very well described by the theoretical
+# distribution, so we can use it to calculate a more precise pvalue.
+1 - pchisq(S1, df = 30)
+
+
+
+## 2.7 Chargaff’s Rule
+load("./data/ChargaffTable.RData")
+ChargaffTable
+
