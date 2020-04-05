@@ -7,7 +7,7 @@ https://www.huber.embl.de/msmb/
 # Organisation
 Material is organised in chapter folders:
 
-1) _**chapterXX/chapterXX.pptx**_ is a powerpoint presentation which contains background information that can help understand the material in the book, either basic maths, or more detailed work of some of the equations, or summary slides of some of the key points. It is more a collection of relevant information than a presentation of the chapter.
+1) _**chapterXX/ChapterXX.pptx**_ is a powerpoint presentation which contains background information that can help understand the material in the book, either basic maths, or more detailed work of some of the equations, or summary slides of some of the key points. It is more a collection of relevant information than a presentation of the chapter.
 
 2) _**chapterXX/ChapterXX.R**_ is R code with a working through of the material in the chapter. Mostly copying and pasting the code that is in the book. It also contains answers to the questions/tasks/excercises which are not always available in the book (?). This is meant to be used in parallel with reading the chapter to see the code working in practice.
 
