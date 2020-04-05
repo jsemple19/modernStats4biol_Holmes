@@ -62,6 +62,8 @@ Multiply by $\frac{\lambda}{100}$:
 So the $\lambda$ paramter is the same as the mean ($\overline{k}$).
 
 
+
+
 \newpage 
 ## Likelihood for the binomial distribution 
 
@@ -85,6 +87,10 @@ We bring down the exponents using the $\log(a^{b})=b\log(a)$ rule:
 
 This is the formula used in the text.
 
+
+
+
+
 \newpage 
 ## Hardy Weinberg equilibrium
 
@@ -101,7 +107,7 @@ $(n_{MM},n_{NN}, n_{MN})$ and the total number of individuals
 $S=n_{MM}+n_{NN}+n_{MN}$
 
 Using the mutinomial formula we can write the likelihood of the data given the
-expected porbabilities of $p^2,q^2,2pq$:
+expected probabilities of $p^2,q^2,2pq$:
 
 \[P(n_{MM},n_{MN},n_{NN} \mid
 p) = \binom{S}{n_{MM},n_{MN},n_{NN}} (p^2)^{n_{MM}} \times (2pq)^{n_{NM}} \times (q^2)^{n_{NN}}\]
@@ -114,15 +120,52 @@ Separating the terms with $\log(ab)=\log(a)+\log(b)$ rule:
 
 \[L(p) = \log(\binom{S}{n_{MM},n_{MN},n_{NN}}) + \log((p^2)^{n_{MM}}) + \log((2pq)^{n_{NM}}) + \log((q^2)^{n_{NN}})\]
 
-We bring forward the exponants with $\log(a^b)=b\log(a)$ rule:
+We bring forward the exponants with $\log(a^b)=b\log(a)$ rule, and simplify
+the middle term with the $\log(ab)=\log(a)+\log(b)$ rule:
 
-\[L(p) = \log(\binom{S}{n_{MM},n_{MN},n_{NN}}) + 2n_{MM}\log(p) + n_{NM} \log(2pq) + 2n_{NN} \log(q)\]
+\[L(p) = \log(\binom{S}{n_{MM},n_{MN},n_{NN}}) + 2n_{MM}\log(p) + n_{NM} \log(2) +n_{NM} \log(p) +n_{NM} \log(q) + 2n_{NN} \log(q)\]
+
+We can gather some of the terms:
+
+\[L(p) = \log(\binom{S}{n_{MM},n_{MN},n_{NN}}) + (2n_{MM}+n_{NM})\log(p) + n_{NM} \log(2)  + (n_{NM} + 2n_{NN})\log(q)\]
+
+
 
 To maximise the log likelihood we must take the derivative and set it to 0:
 
-\[0 = \frac{d}{dp}\log(\binom{S}{n_{MM},n_{MN},n_{NN}}) + \frac{d}{dp}2n_{MM}\log(p) + \frac{d}{dp}n_{NM} \log(2pq) + \frac{d}{dp}2n_{NN}\log(q)\]
+\[0 = \frac{d}{dp}\log(\binom{S}{n_{MM},n_{MN},n_{NN}}) + \frac{d}{dp}(2n_{MM}+n_{NM})\log(p) + \frac{d}{dp}n_{NM} \log(2) + \frac{d}{dp}(n_{NM} + 2n_{NN})\log(q)\]
 
-The first term does not depend on p, so the derivative is 0, and we can 
-substitute back in $q=1-p$:
+The first and third term do not depend on p, so their derivative is 0, and we 
+can substitute back in $q=1-p$:
 
-\[0 = 0 + \frac{d}{dp}2n_{MM}\log(p) + \frac{d}{dp}n_{NM} \log(2p(1-p)) + \frac{d}{dp}2n_{NN}\log(1-p)\]
+\[0 = 0 + \frac{d}{dp}(2n_{MM}+n_{NM})\log(p) +0+ \frac{d}{dp}(n_{NM} + 2n_{NN})\log(1-p)\]
+
+Using the $\frac{d}{dx}\ln(x)=\frac{1}{x}$ rule (remember, $\log$ without an
+explicit base in maths is usually $\ln$):
+
+\[0 = \frac{2n_{MM}+n_{NM}}{p} + \frac{n_{NM} + 2n_{NN}}{1-p}\]
+
+We multiply both sides by $p(1-p)$:
+
+\[0 = (2n_{MM}+n_{NM})(p-1) + (n_{NM} + 2n_{NN})p\]
+
+Simplifying:
+
+\[0 = 2n_{MM}p+n_{NM}p-2n_{MM}-n_{NM} + n_{NM}p + 2n_{NN}p\]
+
+\[0 = 2n_{MM}p+ 2n_{NM}p + 2n_{NN}p -2n_{MM}-n_{NM} \]
+
+\[0 = (2n_{MM} + 2n_{NM} +  2n_{NN})p -2n_{MM}-n_{NM} \]
+
+\[ 2n_{MM}+n_{NM}  = (2n_{MM} + 2n_{NM} +  2n_{NN})p \]
+
+\[ p=\frac{2n_{MM}+n_{NM}}{2n_{MM} + 2n_{NM} +  2n_{NN}} \]
+
+\[ p=\frac{2n_{MM}+n_{NM}}{2S} \]
+
+\[ p=\frac{2n_{MM}+n_{NM}}{2S} \]
+
+\[ p=\frac{n_{MM}+\frac{1}{2}n_{NM}}{S} \]
+
+So the most likely p given the data, is the proportion of homozygotes carrying
+that allele plus half the proportion of heterozygotes
