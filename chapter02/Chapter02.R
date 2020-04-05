@@ -382,3 +382,109 @@ abline(a = 0, b = 1, col = "red")
 load("./data/ChargaffTable.RData")
 ChargaffTable
 
+
+## Question 2.13
+# Do these data seem to come from equally likely multinomial categories?
+# Can you suggest an alternative pattern?
+# Can you do a quantitative analysis of the pattern, perhaps inspired by the simulations above?
+
+# No, they do not seem to come from a multinomial with equally likely categories
+# because in most organisms AT are similar to each other but different from GC
+# frequencies. This suggests A-T and C-G basepairing
+# To test this we could look if: (pC-pG)^2+(pA-pT)^2 is equal to 0
+
+statChf = function(x){ # function to calculate our statistic according to the prediction of Chagraff's rule
+  sum((x[, "C"] - x[, "G"])^2 + (x[, "A"] - x[, "T"])^2)
+}
+chfstat = statChf(ChargaffTable) # calculate for the data
+permstat = replicate(100000, {  # create a null distribution where we randomise the order of the columnes in the table
+  permuted = t(apply(ChargaffTable, 1, sample))
+  colnames(permuted) = colnames(ChargaffTable)
+  statChf(permuted)
+})
+pChf = mean(permstat <= chfstat)
+pChf
+
+hist(permstat, breaks = 100, main = "", col = "lavender")
+abline(v = chfstat, lwd = 2, col = "red")
+
+# it is very unlikely to get such a close match between As and Ts and
+# between Cs and Gs, threfore the data support Chagraff's rule
+
+
+
+## Question 2.14
+# When computing pChf, we only looked at the values in the null distribution smaller than the observed value. Why did we do this in a one-sided way here?
+# We only looked at values smaller than the observed values, becuase that is
+# what interests us. and using a one-sided distribution gives us more
+# statistical power.
+
+
+
+## 2.7.1 Two categorical variables
+# So far we have dealt with one variable and two (binomial) or more (multinomial)
+# categories of that variable.
+# if we want to look at two categorical variables we cross tabulate all
+# combinations into a contingency table
+
+HairEyeColor[,, "Female"]
+
+
+## Question 2.15
+# Explore the HairEyeColor object in R. What data type, shape and dimensions does it have?
+str(HairEyeColor)
+# This is a three-dimentional table 4(Hair)x4(Eye)x2(Sex)
+?HairEyeColor
+
+
+## Color blindness and sex
+load("./data/Deuteranopia.RData")
+Deuteranopia
+
+# null model has two indpendant binomials, one for colour blindness and one for
+# sex.
+
+chisq.test(Deuteranopia)
+
+# so how did that work?
+# First we must calculate the row and column sums
+DeuterMat<-as.data.frame(Deuteranopia)
+blindSum<-rowSums(DeuterMat)
+blindSum
+sexSum<-colSums(DeuterMat)
+sexSum
+
+# from that we can calculate the probability of each variable independantly
+# (this is called the marginal probability):
+blindProb<-blindSum/sum(blindSum)
+blindProb
+sexProb<-sexSum/sum(sexSum)
+sexProb
+
+# our null hypothesis is that these two sums are indpendant so we can get the
+# combined probability by multiplying the different category probabilites:
+exptdProb<-outer(blindProb,sexProb,FUN="*")
+exptdProb
+# and if we multiply by the total number of people we get the count
+exptdCount<-exptdProb*sum(sexSum)
+exptdCount
+# now we just use the chi squared statistic to compare these numbers with
+# the real numbers
+chisqStat<-sum((Deuteranopia-exptdCount)^2/exptdCount)
+chisqStat
+# Now we see the probability of getting a result as big or bigger
+# than that in the chisq distribution with 1 degree of freedom (degrees
+# of freedom for a contingency table are (numRows-1)*(numCols-1)
+1-pchisq(chisqStat,df=1)
+# this is slightly different for the answer we got above, because the default
+# in chisq.test is to apply Yates' continuity correction - i.e a small
+# correction that accounts for the fact that we are approximating a discrete
+# probability with a continuous probability (like the 10.5 people in our
+# exptdCount table). If we remove that correction we get the same answer:
+chisq.test(Deuteranopia,correct=F)
+
+
+
+## 2.7.2 A special multinomial: Hardy-Weinberg equilibrium
+
+

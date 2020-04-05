@@ -2,17 +2,16 @@
 title: "solvingEquation" 
 author: "Jennifer Semple" 
 date: "4/1/2020"
-geometry: "left=4cm,right=5cm,top=2cm,bottom=4cm" 
+geometry: "left=4cm,right=5cm,top=2cm,bottom=4cm"
 output: pdf_document 
----
-## 2.3.1 Classical statistics for classical data 
+--- 
+## 2.3.1 Classical statistics for classical data
 
 Proof that the mean of the Poisson distribution maximises the log-likelihood:
+From before we know that the liklihood (written here as L) is a multiplication
+of all the inidividual probabilities:
 
-From before we know that the liklihood (written here as L) is a multiplication of all the inidividual probabilities: 
-
-\[L(\lambda,x = (k_{1},k_{2},k_{3}...)) =
-\prod_{i=1}^{100} f(k_{i}) \] 
+\[L(\lambda,x = (k_{1},k_{2},k_{3}...)) = \prod_{i=1}^{100} f(k_{i}) \]
 
 f(k) is simply the Poisson density function:
 
@@ -23,23 +22,28 @@ So if we put those together and take the log of both sides, we get:
 \[\log(L(\lambda,x)) =
 \log(\prod_{i=1}^{100}\frac{e^{-\lambda}\lambda^{k}}{k!})\]
 
-We know that the product log of a product ($\prod_{}^{}$) is the same as the sum ($\sum_{}^{}$) of a log, we can rewrite it as:
+We know that the product log of a product ($\prod_{}^{}$) is the same as the sum
+($\sum_{}^{}$) of a log, we can rewrite it as:
 
 \[ \log L= \sum_{i=1}^{100}\log(\frac{e^{-\lambda}\lambda^{k}}{k!})\]
 
-We can also break up the fraction, again using the log rules of $\log(a*b)=log(a)+log(b)$ and $\log(\frac{a}{b})=\log(a)-log(b)$:
+We can also break up the fraction, again using the log rules of
+$\log(a*b)=log(a)+log(b)$ and $\log(\frac{a}{b})=\log(a)-log(b)$:
 
 \[\log L= \sum_{i=1}^{100}(\log(e^{-\lambda}) + \log(\lambda^{k}) -\log({k!}))\]
 
-Now we can get rid of the powers using $\log(a^{b})=b\log(a)$. Also $\log(e)=1$ because this is the natural log.
+Now we can get rid of the powers using $\log(a^{b})=b\log(a)$. Also $\log(e)=1$
+because this is the natural log.
 
 \[\log L= \sum_{i=1}^{100}(-\lambda + k\log(\lambda) - \log({k!}))\]
 
-Now we want to break apart the sum by extracting terms that do not depend on k.The final term does not depend on lambda, so it is just a constant:
+Now we want to break apart the sum by extracting terms that do not depend on
+k.The final term does not depend on lambda, so it is just a constant:
 
 \[log L= -100\lambda+\log\lambda(\sum_{i=1}^{100}k_{i}) + const.\]
 
-To get the maximum of a function we want the derivative of the function to be equal to 0:
+To get the maximum of a function we want the derivative of the function to be
+equal to 0:
 
 \[\frac{d}{d\lambda}\log L=
 \frac{d}{d\lambda}(-100\lambda+\log\lambda(\sum_{i=1}^{100}k_{i}) + const.) =
@@ -48,28 +52,77 @@ To get the maximum of a function we want the derivative of the function to be eq
 Using the derivative rules of $\frac{d}{dx}ax=a$ and
 $\frac{d}{dx}\log(x)=\frac{1}{x}$, and derivative of a constant is 0, we get:
 
-\[-100 + \frac{1}{\lambda}\sum_{i=1}^{100}k_{i} = 0\]
-\[100 = \frac{1}{\lambda}\sum_{i=1}^{100}k_{i}\]
+\[-100 + \frac{1}{\lambda}\sum_{i=1}^{100}k_{i} = 0\] \[100 =
+\frac{1}{\lambda}\sum_{i=1}^{100}k_{i}\]
 
 Multiply by $\frac{\lambda}{100}$:
 
-\[\lambda=\frac{1}{100}\sum_{i=1}^{100}k_{i} = \overline{k}\]
+\[\lambda=\frac{1}{100}\sum_{i=1}^{100}k_{i} = \overline{k}\] 
+
 So the $\lambda$ paramter is the same as the mean ($\overline{k}$).
+
+
 \newpage 
+## Likelihood for the binomial distribution 
 
-## Likelihood for the binomial distribution
-\[f(\theta|n,y) =
-f(y|n,\theta) = \binom{n}{y}\theta^{y}(1-\theta)^{(n-y)}\]
+\[f(\theta \mid n,y) = f(y
+\mid n,\theta) = \binom{n}{y}\theta^{y}(1-\theta)^{(n-y)}\]
 
-To avoid large-number multiplications we take the log of both sides (log likelihood):
-\[\log f(\theta|n,y) = \log (\binom{n}{y}\theta^{y}(1-\theta)^{(n-y)})\]
+To avoid large-number multiplications we take the log of both sides (log
+likelihood): 
+
+\[\log f(\theta \mid n,y) = \log
+(\binom{n}{y}\theta^{y}(1-\theta)^{(n-y)})\]
 
 We break up the product using the log rule $\log(ab)=\log(a)+\log(b)$:
 
-\[\log f(\theta|n,y) = \log\binom{n}{y}+ \log\theta^{y}+\log(1-\theta)^{(n-y)})\]
+\[\log f(\theta \mid n,y) = \log\binom{n}{y}+
+\log\theta^{y}+\log(1-\theta)^{(n-y)})\]
 
 We bring down the exponents using the $\log(a^{b})=b\log(a)$ rule:
 
-\[\log f(\theta|n,y) = \log\binom{n}{y}+ y\log\theta+(n-y)\log(1-\theta)\]
+\[\log f(\theta \mid n,y) = \log\binom{n}{y}+ y\log\theta+(n-y)\log(1-\theta)\]
 
 This is the formula used in the text.
+
+\newpage 
+## Hardy Weinberg equilibrium
+
+We have two alleles in a population, N and M. Frequency of M is p Frequency of N
+is 1-p, which we will call q.
+
+Since both copies of an allele are distributed independantly, the freuency or
+probability of the different combinations of two alleles are:
+
+\[P_{MM}=p \times p=p^2, P_{NN}=q\times q=q^2, P_{MN}=p \times q + q \times p=2pq \]
+
+As data we normally observe the counts of the different genotypes
+$(n_{MM},n_{NN}, n_{MN})$ and the total number of individuals
+$S=n_{MM}+n_{NN}+n_{MN}$
+
+Using the mutinomial formula we can write the likelihood of the data given the
+expected porbabilities of $p^2,q^2,2pq$:
+
+\[P(n_{MM},n_{MN},n_{NN} \mid
+p) = \binom{S}{n_{MM},n_{MN},n_{NN}} (p^2)^{n_{MM}} \times (2pq)^{n_{NM}} \times (q^2)^{n_{NN}}\]
+
+To get the log likelihood we take the log of both sides:
+
+\[L(p) = \log(\binom{S}{n_{MM},n_{MN},n_{NN}}(p^2)^{n_{MM}} \times (2pq)^{n_{NM}} \times (q^2)^{n_{NN}})\]
+
+Separating the terms with $\log(ab)=\log(a)+\log(b)$ rule:
+
+\[L(p) = \log(\binom{S}{n_{MM},n_{MN},n_{NN}}) + \log((p^2)^{n_{MM}}) + \log((2pq)^{n_{NM}}) + \log((q^2)^{n_{NN}})\]
+
+We bring forward the exponants with $\log(a^b)=b\log(a)$ rule:
+
+\[L(p) = \log(\binom{S}{n_{MM},n_{MN},n_{NN}}) + 2n_{MM}\log(p) + n_{NM} \log(2pq) + 2n_{NN} \log(q)\]
+
+To maximise the log likelihood we must take the derivative and set it to 0:
+
+\[0 = \frac{d}{dp}\log(\binom{S}{n_{MM},n_{MN},n_{NN}}) + \frac{d}{dp}2n_{MM}\log(p) + \frac{d}{dp}n_{NM} \log(2pq) + \frac{d}{dp}2n_{NN}\log(q)\]
+
+The first term does not depend on p, so the derivative is 0, and we can 
+substitute back in $q=1-p$:
+
+\[0 = 0 + \frac{d}{dp}2n_{MM}\log(p) + \frac{d}{dp}n_{NM} \log(2p(1-p)) + \frac{d}{dp}2n_{NN}\log(1-p)\]
