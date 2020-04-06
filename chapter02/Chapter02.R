@@ -487,4 +487,126 @@ chisq.test(Deuteranopia,correct=F)
 
 ## 2.7.2 A special multinomial: Hardy-Weinberg equilibrium
 
+# see derivation of Maximum Loglikelhood estimate (MLE) of the Hardey Weinberg
+# equilibrium.
 
+library("HardyWeinberg")
+data("Mourant")
+Mourant[214:216,]
+
+
+nMM = Mourant$MM[216]
+nMN = Mourant$MN[216]
+nNN = Mourant$NN[216]
+loglik = function(p, q = 1 - p) {
+  2 * nMM * log(p) + nMN * log(2*p*q) + 2 * nNN * log(q)
+}
+xv = seq(0.01, 0.99, by = 0.01)
+yv = loglik(xv)
+plot(x = xv, y = yv, type = "l", lwd = 2,
+     xlab = "p", ylab = "log-likelihood")
+imax = which.max(yv)
+abline(v = xv[imax], h = yv[imax], lwd = 1.5, col = "blue")
+abline(h = yv[imax], lwd = 1.5, col = "purple")
+
+# calculate allele frequency (af) from genotype counts
+phat  =  af(c(nMM, nMN, nNN))
+phat
+
+pMM   =  phat^2
+qhat  =  1 - phat
+
+# expected values under HW equilibrium
+pHW = c(MM = phat^2, MN = 2*phat*qhat, NN = qhat^2)
+sum(c(nMM, nMN, nNN)) * pHW
+
+
+## Visual comparison to the Hardy-Weinberg equilibrium
+# de Finetti plot
+pops = c(1, 69, 128, 148, 192)
+genotypeFrequencies = as.matrix(Mourant[, c("MM", "MN", "NN")])
+HWTernaryPlot(genotypeFrequencies[pops, ],
+              markerlab = Mourant$Country[pops],
+              alpha = 0.0001, curvecols = c("red", rep("purple", 4)),
+              mcex = 0.75, vertex.cex = 1)
+
+
+## Question 2.16
+# Make the ternary plot as in the code above, then add the other data points to it, what do you notice? You could back up your discussion using the HWChisq function.
+HWTernaryPlot(genotypeFrequencies[-pops, ], alpha = 0.0001,
+              newframe = FALSE, cex = 0.5)
+# the majority of the populations follow the Harvey Weinberg equilibrium
+hwPval<-HWChisqMat(genotypeFrequencies)$pvalvec
+sum(hwPval<=0.0001)
+# only 20 of the 216 samples do not follow the Harvey Weinberg equilibrium
+
+
+## Question 2.17
+# Divide all total frequencies by 50, keeping the same proportions for each of the genotypes, and recreate the ternary plot.
+
+newgf = round(genotypeFrequencies / 50)
+HWTernaryPlot(newgf[pops, ],
+              markerlab = Mourant$Country[pops],
+              alpha = 0.0001, curvecols = c("red", rep("purple", 4)),
+              mcex = 0.75, vertex.cex = 1)
+
+# What happens to the points ?
+# What happens to the confidence regions and why?
+# The points are all green. This is because with a lower number of counts the
+# confidence region is much larrger
+
+
+
+## 2.7.3 Concatenating several multinomials: sequence motifs and logos
+
+library("seqLogo")
+load("./data/kozak.RData")
+kozak
+pwm = makePWM(kozak)
+seqLogo(pwm, ic.scale = FALSE)
+
+
+
+## 2.8 Modeling sequential dependencies: Markov chains
+# Markove chains  - probabilities of something at time t is dependent only
+# upon the previous k time points. or probability of a sequence at position p
+# is only dependent upon k positions
+
+
+
+## 2.9 Bayesian Thinking
+## Haplotypes
+## 2.9.1 Example: haplotype frequencies
+# look at haplotype consisting of variable numbers of short tandem repeats (STR)
+
+haplo6=read.table("./data/haplotype6.txt",header = TRUE)
+haplo6
+
+
+
+## 2.9.2 Simulation study of the Bayesian paradigm for the binomial
+
+#  if we start with a prior belief on thetathat is beta-shaped, observe a
+#  dataset of n binomial trials, then update our belief, the posterior
+#  distribution on theta will also have a beta distribution, albeit with
+#  updated parameters.
+
+
+## The distribution of Y
+
+rtheta = rbeta(100000, 50, 350)
+y = vapply(rtheta, function(th) {
+  rbinom(1, prob = th, size = 300)
+}, numeric(1))
+hist(y, breaks = 50, col = "orange", main = "", xlab = "")
+
+
+## Question 2.18
+# Verify that we could have gotten the same result as in the above code chunk by using R’s vectorisation capabilities and writing rbinom(length(rtheta), rtheta, size = 300).
+y=rbinom(length(rtheta), rtheta, size = 300)
+hist(y, breaks = 50, col = "orange", main = "", xlab = "")
+
+
+
+##  Histogram of all the thetas such that Y=40: the posterior distribution
+#
