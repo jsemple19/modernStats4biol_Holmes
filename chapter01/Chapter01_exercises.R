@@ -179,10 +179,11 @@ plot(xCont,dweibull(xCont,shape=10,scale=mean(xCont)))
 #beta, Cauchey, f, t, chisq
 
 
+
 ## Exercise 1.7
 # Generate 100 instances of a Poisson(3) random variable. What is the mean? What is the variance as computed by the R function var?
 
-sims<-rpois(100,3)
+sims<-rpois(100000,3)
 mean(sims)
 var(sims)
 # this illustrates that the mean and variance of a poisson distribution are both the same, and are equal to lambda
