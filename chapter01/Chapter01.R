@@ -329,19 +329,21 @@ obsunder0 = rmultinom(1000, prob = pvec, size = 20)
 dim(obsunder0)
 obsunder0[, 1:11]
 
-# What is the expected number?
+# What is the expected value?
 # 20 balls thrown into 4 bins:
 20/4
 
+
 # Statistical test: compare observed values to expected values
 expected0 = pvec * 20
+expected0
 sum((obsunder0[, 1] - expected0)^2 / expected0)
 sum((obsunder0[, 2] - expected0)^2 / expected0)
 sum((obsunder0[, 3] - expected0)^2 / expected0)
 
 
 #lets do this for the whole table using a function:
-stat = function(obsvd, exptd = 20 * pvec) {
+stat <- function(obsvd, exptd = 20 * pvec) {
   sum((obsvd - exptd)^2 / exptd)
 }
 # does the function work? test on first column:
@@ -373,12 +375,14 @@ q95
 
 ##### weighted sum of squares ###
 
-# lets quickly look at that function we wrote to calculated weighted sum of squares
+# lets quickly look at that function we wrote to calculated weighted sum of
+# squares
 stat = function(obsvd, exptd = 20 * pvec) {
   sum((obsvd - exptd)^2 / exptd)
 }
 
-# we subtract expected from observed values to see how "far" they are from eachother.
+# we subtract expected from observed values to see how "far" they are from
+# eachother.
 # Why do we square that value?
 # Why do we divide by the expected?
 
@@ -390,7 +394,7 @@ stat_notSquared = function(obsvd, exptd = 20 * pvec) {
 # why square?
 S0_notSquared = apply(obsunder0, 2, stat_notSquared)
 round(mean(S0),6)
-round(mean(S0_notSquared),6)
+round(mean(S0_notSquared),0)
 
 # because this is a random sample, all the numbers will be distributed
 # equally around the expected value (or mean), so if you do not square them,
@@ -407,9 +411,9 @@ S0_notWeighted = apply(obsunder0, 2, stat_notWeighted)
 
 # lets compare this to using a larger sample size (200 balls)
 obsunder1 = rmultinom(1000, prob = pvec, size = 200)
-# lets calculate the weighted and non-weighted statistics (we must give the exptd value
-# for this larger sample in order to overide the default of 20*pvec that is in the
-# function definition)
+# lets calculate the weighted and non-weighted statistics (we must give the
+# exptd value for this larger sample in order to overide the default of 20*pvec
+# that is in the function definition)
 S1 = apply(obsunder1, 2, stat, exptd=200*pvec)
 S1_notWeighted = apply(obsunder1, 2, stat_notWeighted, exptd=200*pvec)
 
@@ -528,3 +532,4 @@ df=3 # degrees of freedom
 
 power.chisq.test(n=n,df=df,w=w)
 # with a sample size of 20 the power is 0.23
+
