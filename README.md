@@ -20,7 +20,7 @@ Material is organised in chapter folders:
 ## Installing packages in R
 In general in r you can install packages with a single command. For instance to install the vnc package you type:
 ```
-install.packages("vnc")
+install.packages("vcd")
 ```
 
 Some packages, specific for genomic data are part of the Bioconductor package. So you must first install bioconductor:
@@ -38,6 +38,6 @@ BiocManager::install("Biostrings")
 
 In any session where you want to use a package, you must load its namespace with library(). e.g.:
 ```
-library(vnc)
+library(vcd)
 library(Biostrings)
 ```
