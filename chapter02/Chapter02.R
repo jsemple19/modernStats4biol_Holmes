@@ -346,7 +346,7 @@ qSims<-quantile(simulstat, qs) #value of the distribution of our simulated data 
 qTheoretical<-quantile(qchisq(qs, df = 30), qs)# value of the theoretical distribution at various probability values
 
 # We can plot the quantiles against eachother, this is a qqplot
-plot(qSims,qTheoretical, main=qqplot)
+plot(qSims,qTheoretical, main="qqplot")
 abline(a=0,b=1) # line with slope 1 going through the origin
 # if the distributions are exactly the same, the points should alig nalong the
 # line.
@@ -593,9 +593,15 @@ haplo6
 
 
 ## The distribution of Y
+# We want to demonstrate by example that if the prior distribution is beta-
+# shaped, then we observe a dataset of n binomial trials, and obtained an
+# updated posterior distribution, this will also be beta shaped but with
+# different parameters
 
-rtheta = rbeta(100000, 50, 350)
-y = vapply(rtheta, function(th) {
+# We generate a beta-shaped prior distribution of probabilities. We use these
+# as the probability parameter for the binomial distribution.
+rtheta = rbeta(100000, 50, 350) # prior distribution of thetas
+y = vapply(rtheta, function(th) { # We simulate a random binomial distribution using these probabilities
   rbinom(1, prob = th, size = 300)
 }, numeric(1))
 hist(y, breaks = 50, col = "orange", main = "", xlab = "")
@@ -607,6 +613,178 @@ y=rbinom(length(rtheta), rtheta, size = 300)
 hist(y, breaks = 50, col = "orange", main = "", xlab = "")
 
 
-
 ##  Histogram of all the thetas such that Y=40: the posterior distribution
-#
+# We will now choose a subset of the data where y==40 and find all the beta
+# priors that gave that result. this is the posterior probability (the
+# distribution of theta given a certain value of y)
+thetaPostEmp = rtheta[ y == 40 ]
+hist(thetaPostEmp, breaks = 40, col = "chartreuse4", main = "",
+     probability = TRUE, xlab = expression("posterior"~theta))
+
+# we compare this to the theoretical beta distribution given the updated
+# parameters of the theta distribution. These were calculated as follows:
+# - The parameters for the prior distribution were 50 and 350.
+# - The y we chose was 40, and we ran 300 trials (size=300 in rbinom function)
+# - So we add 40 successes to 50 = 90 and 300-40=260 failures to 350 to give 610.
+# and use 90 and 610 as the new parameters of the beta
+densPostTheory  =  dbeta(thetas, 90, 610)
+lines(thetas, densPostTheory, type="l", lwd = 3)
+# we see tha this theoretical posterior distribution is similar to our
+# simluated one.
+
+# Their means are also similar:
+mean(thetaPostEmp)
+
+dtheta = thetas[2]-thetas[1]
+sum(thetas * densPostTheory * dtheta)
+# this is an integration: summing the area under the curve and multiplying it
+# by the thickness of the slice (the fraction each slice represents of the total
+# x-range (0,1). This gives as an average area under the curve, i.e. the mean
+
+# doing such an integration is difficult if there is more than one paramter
+# in the distribution, so we can simply get the mean of simluated data wtih
+# the new parameters
+# Monte Carlo integration
+thetaPostMC = rbeta(n = 1e6, 90, 610)
+mean(thetaPostMC)
+
+qqplot(thetaPostMC, thetaPostEmp, type = "l", asp = 1)
+abline(a = 0, b = 1, col = "blue")
+
+
+## Question 2.19
+# What is the difference between the simulation that results in thetaPostEmp and
+# the Monte Carlo simulation that leads to thetaPostMC?
+# The difference between these simulations is that the thetaPostMC has many
+# more data points, than the thetaPostEmp. that is why the qqplot agreement
+# is not great at the tails. But to estimate the mean this shoul not be a
+# problem
+
+
+## Suppose we had a second series of data
+# New series of data with n=150 observations and y=25 success (and 125 failures)
+# The new posterior would now be:
+# beta(90+25=115, 610+125=735)
+# The mean of this distribution would be alpha/(alpha+beta)=115/850=0.135
+115/(115+735)
+
+# The Maximum A Posteriori (MAP) estimate is the mode of the posterior
+# distribution.
+# The mode of a beta distributions is (alpha-1)/(alpha+beta-2)
+(115-1)/(115+735-2)
+
+# lets check this numerically
+# First using the cumulative density function for beta
+densPost2 = dbeta(thetas, 115, 735)
+sum(thetas * densPost2 * dtheta)  # mean, by numeric integration
+thetas[which.max(densPost2)]      # MAP estimate (mode)
+
+# The checking simulated data
+mcPost2   = rbeta(1e6, 115, 735)
+mean(mcPost2)                     # mean, by MC
+
+
+## Question 2.20
+# Redo all the computations replacing our original prior with a softer prior (less peaked), meaning that we use less prior information. How much does this change the final result?
+# our previous prior was 90,610. A softer prior might be with a tenth of the
+# date i.e 9,61
+hist(rbeta(700,90,610),breaks=100,xlim=c(0,1))
+hist(rbeta(700,9,61),breaks=100,xlim=c(0,1))
+# you can see this is a broader distribution
+
+# now the new posterior distribution would be with alpha=9+25=31 and
+# beta=61+125=186
+densPost2 = dbeta(thetas, 31, 186)
+sum(thetas * densPost2 * dtheta)  # mean, by numeric integration
+thetas[which.max(densPost2)]
+
+# our estimates have changed a bit but not that much.
+# So the prior doesn't change the posterior probability very much unless we
+# have an extremely peaked prior because we are very sure of what to expect.
+# But in general you want to have enough new data to swamp the prior.
+
+
+## Confidence Statements for the proportion parameter
+quantile(mcPost2, c(0.025, 0.975))
+
+
+## 2.10 Example: occurrence of a nucleotide pattern in a genome
+# This example deals with quasi continuous data: the distribution of
+# distances between instances of  motif in the genome.
+
+
+## Question 2.21
+# Explore some of the useful data and functions provided in the Biostrings package by exploring the tutorial vignette.
+
+library("Biostrings")
+GENETIC_CODE
+IUPAC_CODE_MAP
+vignette(package = "Biostrings")
+vignette("BiostringsQuickOverview", package = "Biostrings")
+
+library("BSgenome")
+ag = available.genomes()
+length(ag)
+ag[1:2]
+
+
+library("BSgenome.Ecoli.NCBI.20080805") # E.Coli genome
+Ecoli #there are 13 different genome sequences for E. coli
+shineDalgarno = "AGGAGGT" # this is the motif we want to search for
+ecoli = Ecoli$NC_010473 # we select the sequence of K12 strain, substrain DH10B
+
+# how often does this sequece occur in windows 50kb wide?
+window = 50000
+starts = seq(1, length(ecoli) - window, by = window)
+ends   = starts + window - 1
+numMatches = vapply(seq_along(starts), function(i) {
+  countPattern(shineDalgarno, ecoli[starts[i]:ends[i]],
+               max.mismatch = 0)
+}, numeric(1))
+table(numMatches)
+
+
+## Question 2.22
+# What distribution might this table fit ?
+# This could fit a Poisson distribution: the number of successes in a given
+# interval
+
+library("vcd")
+gf = goodfit(numMatches, "poisson")
+summary(gf)
+# very high p value
+distplot(numMatches, type = "poisson")
+# not great fit. If the distribution fits tthe data, the plot should show a
+# straight line. open points show the observed count metameters, the filled
+# points show the confidence interval centers, and the dashed lines show the
+# confidence intervals.
+
+# Let's inspect the matches
+sdMatches = matchPattern(shineDalgarno, ecoli, max.mismatch = 0)
+sdMatches
+
+# find the distances between the matches:
+betweenmotifs = gaps(sdMatches)
+betweenmotifs
+
+# Because this is a random Bernouli occurrence along a sequence we expect
+# the gap lengths to be exponentially distributed
+
+library("Renext")
+expplot(width(betweenmotifs), rate = 1/mean(width(betweenmotifs)),
+        labels = "fit")
+
+
+## Question 2.23
+# There appears to be a slight deviation from the fitted line in Figure 2.23 at the right tail of the distribution, i.e., for the largest values. What could be the reason
+# The deviation is probably due to the small number of counts of motifs with
+# such large gaps between them. this introduces a large sampling error.
+
+
+
+## 2.10.1 Modeling in the case of dependencies
+library("BSgenome.Hsapiens.UCSC.hg19")
+chr8  =  Hsapiens$chr8
+CpGtab = read.table("./data/model-based-cpg-islands-hg19.txt",
+                    header = TRUE)
+nrow(CpGtab)
