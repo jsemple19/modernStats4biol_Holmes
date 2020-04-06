@@ -788,3 +788,165 @@ chr8  =  Hsapiens$chr8
 CpGtab = read.table("./data/model-based-cpg-islands-hg19.txt",
                     header = TRUE)
 nrow(CpGtab)
+head(CpGtab)
+
+# lets select ranges coming from chr8 and then create an IRanges object
+irCpG = with(dplyr::filter(CpGtab, chr == "chr8"),
+             IRanges(start = start, end = end))
+irCpG
+
+# then we creat a GRanges object. This is a useful data structure for
+# the position of genomic elements. It is used all the time in Bioconductor.
+grCpG = GRanges(ranges = irCpG, seqnames = "chr8", strand = "+")
+genome(grCpG) = "hg19"
+grCpG
+
+library("Gviz")
+ideo = IdeogramTrack(genome = "hg19", chromosome = "chr8")
+plotTracks(
+  list(GenomeAxisTrack(),
+       AnnotationTrack(grCpG, name = "CpG"), ideo),
+  from = 2200000, to = 5800000,
+  shape = "box", fill = "#006400", stacking = "dense")
+
+CGIview    = Views(unmasked(Hsapiens$chr8), irCpG) # views of CpG chr seq
+NonCGIview = Views(unmasked(Hsapiens$chr8), gaps(irCpG)) # views of chr seq of gaps
+
+# Views are a "lookup" method for the actual sequence rather than containing
+# the sequence itself, this makes them consume less computer memory
+# We use the unmasked sequence because we want to get the real underlying
+# nucleotide sequence. masked sequences will have NNNN instead of the sequence
+# in regions were there is repetative sequences.
+
+
+seqCGI      = as(CGIview, "DNAStringSet")
+seqNonCGI   = as(NonCGIview, "DNAStringSet")
+dinucCpG    = sapply(seqCGI, dinucleotideFrequency)
+dinucNonCpG = sapply(seqNonCGI, dinucleotideFrequency)
+dinucNonCpG[, 1]
+
+# by calculating the dinucleotide frequency we are actually getting what is
+# called in Monte Carlo Chains, the "transition" frequency, i.e. how often,
+# as you walk along the sequence do you transition from the frist nucleotide
+# in the pair to the second. For example, here an A is followed by another A 389
+# times, and by a C 351 times etc.
+
+
+NonICounts = rowSums(dinucNonCpG)
+IslCounts  = rowSums(dinucCpG)
+
+# To convert these to transition probabilities we have to divide by the total
+# counts of each type:
+# rearrange the counts as a matrix with each cell containing the transition
+# frequency from the nucleotide in its rowname to the nucleotide in its column
+# name
+TI  = matrix( IslCounts, ncol = 4, byrow = TRUE)
+TnI = matrix(NonICounts, ncol = 4, byrow = TRUE)
+dimnames(TI) = dimnames(TnI) =
+  list(c("A", "C", "G", "T"), c("A", "C", "G", "T"))
+
+MI = TI /rowSums(TI)
+MI
+
+MN = TnI / rowSums(TnI)
+MN
+
+## Question 2.24
+# Are the transitions different in the different rows? This would mean that, for instance, P(A|C) != P(A|T)
+# Yes, this is indeed the case. For examplein CpG islands (MI): P(A|C)=0.201 and
+# P(A|T)=0.098
+
+
+## Question 2.25
+# Are the relative frequencies of the different nucleotides different in CpG islands compared to elsewhere ?
+# Yes
+
+freqIsl = alphabetFrequency(seqCGI, baseOnly = TRUE, collapse = TRUE)[1:4]
+freqIsl / sum(freqIsl)
+
+freqNon = alphabetFrequency(seqNonCGI, baseOnly = TRUE, collapse = TRUE)[1:4]
+freqNon / sum(freqNon)
+
+
+## Question 2.26
+# How can we use these differences to decide whether a given sequence comes from a CpG island?
+# Compare the frequencies in our given sequence with those in the CpG and nonCpG
+# datasets using the Chi squared statistic
+
+# For very short sequences this might not work because the counts we get for
+# each nucleotide will be very small
+
+# Using a Markov Chain to calculate the probability of a short sequence given
+# particular transition probabilities is more sensitive.
+# We will use a "first order" Markov Chain, this just means that the position
+# of a given nucleotide only depends on the ID of the nucleotide directly
+# before it. (a second order Markov Chain would depend on the two nucleotides
+# before it... etc.)
+
+# therefore the probability of a sequence would be the probability of
+# the first nucleotide multiplied by probablities of all the transitions you
+# make as you go along the sequence:
+
+#P(x=AGTCC) = P(A)*P(AG)*P(GT)*P(TC)*P(CC)
+
+# you simply use the transition probabilities from the CpG table or the NonCpG
+# table to get the probability of it coming from either of these regions.
+
+# We divide these probabilities by eachother to get the ODDS RATIO
+
+# In practice we use log of the odds ratio to avoid dealing with tiny numbers
+# This is called LOG-LIKELIHOOD RATIO score
+
+# we calculate the logs once and then sum the relevant ones for our sequence
+alpha = log((freqIsl/sum(freqIsl)) / (freqNon/sum(freqNon))) # Log liklihood ratio of single nucleotides
+beta  = log(MI / MN)  # log likelihood of trarnsitions
+
+# Now we use alpha and beta to calculate the loglikelihood ratio for our sequence
+x = "ACGTTATACTACG"
+scorefun = function(x) {
+  s = unlist(strsplit(x, ""))
+  score = alpha[s[1]] # takes the first nucleotide and uses single nucleotide probability
+  if (length(s) >= 2)
+    for (j in 2:length(s)) # all remaining nucleotides use transition probilities
+      score = score + beta[s[j-1], s[j]]
+  score
+}
+scorefun(x)
+# The log likelihood ratio is <1 therefore it is probably not a CpG island sequence
+
+
+# To see how well our score separate sequences originating from these two
+# data sets we will subsample 100bp sequences out of the sequences in our
+# two data sets. This will be done by sampling start sites for the subsequences
+# uniformally, in proportion  to the length of the sequence.
+# (so if the first sequence in CpG dataset is 2000 bases long and the second
+# 20,000 bases long, we will take 10x more sequences from the second than from
+# the first, up to a maximum of 1000 subsequences).
+# Then for each subsequence we will calculate the log likelihood ratio.
+
+generateRandomScores = function(s, len = 100, B = 1000) {
+  alphFreq = alphabetFrequency(s)
+  isGoodSeq = rowSums(alphFreq[, 5:ncol(alphFreq)]) == 0
+  s = s[isGoodSeq]
+  slen = sapply(s, length)
+  prob = pmax(slen - len, 0)
+  prob = prob / sum(prob)
+  idx  = sample(length(s), B, replace = TRUE, prob = prob)
+  ssmp = s[idx]
+  start = sapply(ssmp, function(x) sample(length(x) - len, 1))
+  scores = sapply(seq_len(B), function(i)
+    scorefun(as.character(ssmp[[i]][start[i]+(1:len)]))
+  )
+  scores / len
+}
+scoresCGI    = generateRandomScores(seqCGI)
+scoresNonCGI = generateRandomScores(seqNonCGI)
+
+# now we plot the two distributions
+br = seq(-0.6, 0.8, length.out = 50)
+h1 = hist(scoresCGI,    breaks = br, plot = FALSE)
+h2 = hist(scoresNonCGI, breaks = br, plot = FALSE)
+plot(h1, col = rgb(0, 0, 1, 1/4), xlim = c(-0.5, 0.5), ylim=c(0,120))
+plot(h2, col = rgb(1, 0, 0, 1/4), add = TRUE)
+# This Monte Carlo Chain scoring method works quite well to distinguish
+# the origin of sequences as short as 100bp
