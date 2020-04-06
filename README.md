@@ -35,3 +35,9 @@ must type:
 ```
 BiocManager::install("Biostrings")
 ```
+
+In any session where you want to use a package, you must load its namespace with library(). e.g.:
+```
+library(vnc)
+library(Biostrings)
+```
