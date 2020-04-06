@@ -16,3 +16,22 @@ Material is organised in chapter folders:
 4) _**chapterXX/equations.Rmd**_ is R markdown code with Latex to show a step-by-step manipulatios of some equations. The output can be seen in _equations.pdf_ and is also usually pasted into the powerpoint presentation.
 
 5) _**chapterXX/lists.R, factors.R etc.**_ are R code demonstrating some basic R data structures or functions in a very general way so that the code in the chapter can be better understood.
+
+## Installing packages in R
+In general in r you can install packages with a single command. For instance to install the vnc package you type:
+```
+install.packages("vnc")
+```
+
+Some packages, specific for genomic data are part of the Bioconductor package. So you must first install bioconductor:
+```
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install(version = "3.10")
+```
+
+Then additional packages can be installed with BiocManager::install. For instance to install the "Biostrings" package you
+must type:
+```
+BiocManager::install("Biostrings")
+```
