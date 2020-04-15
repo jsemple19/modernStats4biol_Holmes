@@ -25,7 +25,7 @@ barplot(table(e99), space = 0.8, col = "chartreuse4")
 library("vcd")
 gf1 = goodfit( e99, "poisson")
 rootogram(gf1, xlab = "", rect_gp = gpar(fill = "chartreuse4"))
-# the bars "haning" from the red curve (the theoretical distributions)
+# the bars "hanging" from the red curve (the theoretical distributions)
 # "miss" the x axis by a bit. The more they miss, the worse the fit.
 
 
@@ -54,7 +54,7 @@ table(rpois(100, 3))
 # gives counts close to the observed ones just by trial and error?
 table(e100) # the real data
 table(rpois(100,2)) # lambda=2, too few 0s
-table(rpois(100,1)) # lambda=1, too ferw 0s
+table(rpois(100,1)) # lambda=1, too few 0s
 table(rpois(100,0.7)) # lambda=0.7, not bad.
 
 # Lets go from visual inspection to calculating probability of seeing each
@@ -182,7 +182,7 @@ probs[which.max(likelihood)]
 ## Likelihood for the binomial distribution
 # Likelihood and probability are the same mathematical function, but with different interpretations.
 # Probability tells us how probable we are to see a particular set of values of the data, given the parameters.
-# Likelihood tell us how likely we are to see the parameters given the data
+# Likelihood tells us how likely we are to see the parameters given the data
 # See detailed workthrough of the maths in the powerpoint or in equations.pdf
 
 loglikelihood = function(theta, n = 300, k = 40) {
@@ -194,7 +194,7 @@ plot(thetas, loglikelihood(thetas), xlab = expression(theta),
      ylab = expression(paste("log f(", theta, " | y)")),type = "l")
 
 # maximum lies at 40/300=0.13333
-
+abline(v=0.13333)
 
 
 ## 2.5 More boxes: multinomial data
@@ -368,7 +368,7 @@ abline(a=0,b=1) # line with slope 1 going through the origin
 # Rather than drawing the qqplot manually as we did, there is a function in
 # R called qqplot, as shown in the book.
 
-qqplot(qchisq(ppoints(B), df = 30), simulstat, main = "",
+qqPlot(qchisq(ppoints(B), df = 30), simulstat, main = "",
        xlab = expression(chi[nu==30]^2), asp = 1, cex = 0.5, pch = 16)
 abline(a = 0, b = 1, col = "red")
 
