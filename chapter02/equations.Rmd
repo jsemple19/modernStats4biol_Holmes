@@ -85,7 +85,6 @@ We bring down the exponents using the $\log(a^{b})=b\log(a)$ rule:
 
 \[\log f(\theta \mid n,y) = \log\binom{n}{y}+ y\log\theta+(n-y)\log(1-\theta)\]
 
-This is the formula used in the text.
 
 
 
